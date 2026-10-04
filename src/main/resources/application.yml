@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: spring-boot-floci-gcs
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  cloud:
+    gcp:
+      project-id: floci-local
+      storage:
+        host: ${STORAGE_EMULATOR_HOST:http://localhost:4588}
+
+app:
+  storage:
+    bucket: ${GCS_BUCKET:uploads}
+
+server:
+  port: 8080
+  servlet:
+    session:
+      tracking-modes: cookie

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Floci file storage</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #18243a;
+            background: #f5f7fb;
+            font-synthesis: none;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; }
+        main { width: min(1040px, calc(100% - 40px)); margin: 0 auto; padding: 54px 0 72px; }
+        .topline { display: flex; align-items: center; gap: 11px; color: #526079; font-size: .9rem; font-weight: 650; }
+        .brand-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; color: #fff; background: linear-gradient(145deg, #2ca487, #157563); box-shadow: 0 5px 14px #16756130; }
+        i[data-lucide] { display: inline-block; width: 18px; height: 18px; stroke-width: 1.8; vertical-align: middle; }
+        .brand-icon i, .heading-icon i, .cloud-icon i, .empty-icon i { width: 20px; height: 20px; }
+        .upload-button i { width: 17px; height: 17px; }
+        .file-icon i { width: 21px; height: 21px; }
+        .action i { width: 16px; height: 16px; }
+        h1 { margin: 25px 0 9px; font-size: clamp(2.15rem, 5vw, 3.15rem); letter-spacing: -.055em; line-height: 1.05; }
+        .intro { margin: 0; color: #718096; font-size: 1.03rem; }
+        .layout { display: grid; grid-template-columns: minmax(280px, .78fr) minmax(0, 1.45fr); gap: 22px; margin-top: 36px; align-items: start; }
+        .card { background: #fff; border: 1px solid #e6eaf1; border-radius: 18px; box-shadow: 0 12px 35px #2839570b; }
+        .upload-card { padding: 25px; }
+        .card-heading { display: flex; gap: 13px; align-items: center; margin-bottom: 20px; }
+        .heading-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 13px; color: #197862; background: #e8f6f1; }
+        h2 { margin: 0; font-size: 1.06rem; letter-spacing: -.02em; }
+        .subheading { margin: 4px 0 0; font-size: .86rem; color: #8190a4; }
+        .dropzone { display: grid; justify-items: center; text-align: center; padding: 23px 14px; border: 1px dashed #b9c8d3; border-radius: 13px; background: #fbfdfd; }
+        .cloud-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; color: #197862; background: #e8f6f1; margin-bottom: 11px; }
+        .drop-title { font-size: .93rem; font-weight: 680; }
+        .drop-note { color: #8794a7; font-size: .8rem; margin-top: 5px; }
+        input[type=file] { width: 100%; margin: 17px 0 13px; color: #6f7c8e; font-size: .84rem; }
+        input[type=file]::file-selector-button { margin-right: 10px; padding: 8px 11px; border: 1px solid #dce3e9; border-radius: 8px; background: #fff; color: #33445e; font: inherit; font-weight: 650; cursor: pointer; }
+        button { border: 0; border-radius: 9px; padding: 11px 16px; color: white; background: #187963; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s; }
+        button:hover { background: #11644f; }
+        .upload-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px; }
+        .notice { padding: 11px 13px; border-radius: 10px; background: #e9f6ef; color: #17613f; margin: 0 0 16px; font-size: .9rem; }
+        .error { background: #fff0ed; color: #9e3428; }
+        .list-card { padding: 25px 25px 8px; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 13px; }
+        .count { padding: 5px 10px; border-radius: 20px; background: #f0f3f7; color: #67758a; font-size: .8rem; font-weight: 700; }
+        .file-list { display: grid; gap: 10px; padding-bottom: 17px; }
+        .file-card { display: flex; align-items: center; gap: 13px; min-width: 0; padding: 14px; border: 1px solid #e9edf2; border-radius: 13px; background: #fff; transition: border-color .15s, box-shadow .15s, transform .15s; }
+        .file-card:hover { border-color: #c9ded8; box-shadow: 0 6px 18px #2539540a; transform: translateY(-1px); }
+        .file-icon { display: grid; place-items: center; flex: 0 0 43px; height: 43px; border-radius: 12px; background: #f0f5f4; color: #27826e; font-size: 1.2rem; font-weight: 700; }
+        .file-info { flex: 1; min-width: 0; }
+        .filename { overflow-wrap: anywhere; font-size: .92rem; font-weight: 680; color: #26344b; }
+        .meta { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; color: #8490a2; font-size: .78rem; margin-top: 5px; }
+        .separator { color: #c3cbd5; }
+        .actions { display: flex; align-items: center; gap: 7px; }
+        .action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 35px; padding: 7px 10px; border-radius: 8px; font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .download { color: #17745e; background: #edf7f3; }
+        .download:hover { color: #105e4c; background: #dff1ea; }
+        .delete { color: #a14b4a; background: transparent; }
+        .delete:hover { color: #873635; background: #fff1f0; }
+        .delete-button { color: inherit; background: transparent; padding: 0; font: inherit; }
+        .delete-button:hover { color: inherit; background: transparent; }
+        .empty { display: grid; justify-items: center; padding: 37px 16px 42px; text-align: center; color: #8290a3; }
+        .empty-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #f1f4f7; color: #8a98a9; margin-bottom: 13px; font-size: 1.3rem; }
+        .empty-title { color: #4b5a70; font-weight: 680; font-size: .92rem; }
+        .empty-copy { margin-top: 5px; font-size: .83rem; }
+        @media (max-width: 740px) { main { padding-top: 35px; } .layout { grid-template-columns: 1fr; gap: 16px; margin-top: 27px; } }
+        @media (max-width: 520px) { main { width: min(100% - 26px, 480px); padding-top: 25px; } .upload-card, .list-card { padding: 19px; } .list-card { padding-bottom: 3px; } .file-card { gap: 10px; padding: 11px; } .file-icon { flex-basis: 38px; height: 38px; } .action { min-height: 33px; padding: 6px 8px; } .action-label { display: none; } }
+    </style>
+</head>
+<body>
+<main>
+    <div class="topline"><span class="brand-icon" aria-hidden="true"><i data-lucide="cloud"></i></span> Floci Storage</div>
+    <h1>Your files</h1>
+    <p class="intro">A simple space to upload, browse, and retrieve files.</p>
+
+    <div class="layout">
+        <section class="card upload-card">
+            <div class="card-heading">
+                <span class="heading-icon" aria-hidden="true"><i data-lucide="cloud-upload"></i></span>
+                <div><h2>Upload a file</h2><p class="subheading">Add a file to your storage</p></div>
+            </div>
+            <div class="notice" th:if="${message}" th:text="${message}"></div>
+            <div class="notice error" th:if="${error}" th:text="${error}"></div>
+            <form method="post" action="/files" enctype="multipart/form-data">
+                <div class="dropzone">
+                    <span class="cloud-icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+                    <div class="drop-title">Choose a file to upload</div>
+                    <div class="drop-note">Maximum file size: 100 MB</div>
+                </div>
+                <input type="file" name="file" required>
+                <button class="upload-button" type="submit"><i data-lucide="upload"></i> Upload file</button>
+            </form>
+        </section>
+
+        <section class="card list-card">
+            <div class="list-header">
+                <div class="card-heading" style="margin:0">
+                    <span class="heading-icon" aria-hidden="true"><i data-lucide="files"></i></span>
+                    <div><h2>Stored files</h2><p class="subheading">Files saved in your bucket</p></div>
+                </div>
+                <span class="count" th:text="${files == null ? 0 : #lists.size(files)} + ' files'"></span>
+            </div>
+            <div class="empty" th:if="${files == null or #lists.isEmpty(files)}">
+                <span class="empty-icon" aria-hidden="true"><i data-lucide="folder-open"></i></span>
+                <div class="empty-title">No files yet</div>
+                <div class="empty-copy">Upload a file to see it listed here.</div>
+            </div>
+            <div class="file-list" th:if="${files != null and !#lists.isEmpty(files)}">
+                <article class="file-card" th:each="file : ${files}">
+                    <span class="file-icon" aria-hidden="true"><i data-lucide="file"></i></span>
+                    <div class="file-info">
+                        <div class="filename" th:text="${file.name}"></div>
+                        <div class="meta"><span th:text="${file.displaySize()}"></span><span class="separator">·</span><span th:text="${file.displayType()}"></span></div>
+                    </div>
+                    <div class="actions">
+                        <a class="action download" th:href="@{/files/{name}(name=${file.name})}" aria-label="Download file">
+                            <i data-lucide="download" aria-hidden="true"></i><span class="action-label">Download</span>
+                        </a>
+                        <form method="post" th:action="@{/files/{name}/delete(name=${file.name})}"
+                              onsubmit="return confirm('Delete this file?')">
+                            <button class="action delete delete-button" type="submit" aria-label="Delete file">
+                                <i data-lucide="trash-2" aria-hidden="true"></i><span class="action-label">Delete</span>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </div>
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+services:
+  floci-gcp:
+    image: floci/floci-gcp:latest
+    container_name: floci-gcp
+    ports:
+      - "4588:4588"
+    volumes:
+      - ./data:/data
+    command: ["--persist", "/data"]
+    restart: unless-stopped
